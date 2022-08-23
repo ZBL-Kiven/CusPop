@@ -117,6 +117,7 @@ class CusPop private constructor(private val popConfig: PopConfig) : PopupWindow
 
     fun superDisMiss() {
         try {
+            popConfig.restoreState()
             super@CusPop.dismiss()
         } catch (e: Exception) {
             onExceptionCatch(e, "unable to show cus pop view , the error case: ${e.message}")
@@ -195,6 +196,7 @@ class CusPop private constructor(private val popConfig: PopConfig) : PopupWindow
         internal var focusAble = true; private set
         internal var outsideTouchAble = false; private set
         internal var outsideTouchDismiss = true; private set
+        internal var actState: WindowManager.LayoutParams? = null; private set
 
         fun dimMode(m: DimMode): PopConfig {
             this.dimMode = m
@@ -295,19 +297,36 @@ class CusPop private constructor(private val popConfig: PopConfig) : PopupWindow
         }
 
         fun show(init: (root: View, pop: CusPop) -> Unit) {
+            saveState()
             this.show(Gravity.NO_GRAVITY, init = init)
         }
 
         fun show(showGravity: Int, init: (root: View, pop: CusPop) -> Unit) {
+            saveState()
             instance().show(showGravity, init = init)
         }
 
         fun showIn(init: (root: View, pop: CusPop) -> Unit) {
+            saveState()
             this.showIn(Gravity.NO_GRAVITY, init = init)
         }
 
         fun showIn(showGravity: Int, init: (root: View, pop: CusPop) -> Unit) {
+            saveState()
             instance().showIn(showGravity, init = init)
+        }
+
+        private fun saveState() {
+            val act = getContext() as? Activity ?: return
+            actState = act.window.attributes
+        }
+
+        internal fun restoreState() {
+            if (actState == null) return
+            val act = getContext() as? Activity ?: return
+            if (act.window.attributes.flags != actState?.flags) {
+                act.window.attributes = actState
+            }
         }
 
         @Suppress("DEPRECATION")
